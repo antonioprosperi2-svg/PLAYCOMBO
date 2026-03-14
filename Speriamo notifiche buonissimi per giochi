@@ -1,0 +1,30 @@
+
+/* Notifica Gigante che sparisce da sola */
+(function() {
+    var notification = document.createElement('div');
+    notification.innerHTML = "🔥 SFIDA: Arriva a 2000 punti su TETRIS PLUS!";
+    
+    Object.assign(notification.style, {
+        position: 'fixed',
+        bottom: '30px', // Un po' più alto dal bordo
+        left: '50%',
+        transform: 'translateX(-50%)',
+        backgroundColor: '#ff9800', // Arancione acceso come i tasti di JustPlay
+        color: '#000', // Scritta nera per leggere meglio sul colore acceso
+        padding: '20px 40px', // Più spazio intorno al testo
+        borderRadius: '15px',
+        zIndex: '9999',
+        fontSize: '24px', // ECCOLO: Carattere bello grande
+        fontWeight: 'bold', // Scritta in grassetto
+        textAlign: 'center',
+        width: '80%', // Prende quasi tutta la larghezza così non scappa
+        boxShadow: '0px 10px 20px rgba(0,0,0,0.5)',
+        fontFamily: 'sans-serif'
+    });
+
+    document.body.appendChild(notification);
+
+    setTimeout(function() {
+        notification.style.display = 'none';
+    }, 6000); // 6 secondi così hanno il tempo di leggere bene
+})();
