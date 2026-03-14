@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+ /* 1. SFONDO GRIGIO SCURO (NON NERO PESTE) MENTRE CARICA IL VIDEO */
+ body {
+     margin: 0;
+     background-color: #222; /* Grigio scuro per ridurre lo stacco */
+     font-family: sans-serif;
+     overflow-x: hidden; /* Evita scorrimenti strani */
+ }
+
+ /* IL VIDEO DI SFONDO FISSO */
+ #video-sfondo {
+     position: fixed;
+     top: 0;
+     left: 0;
+     width: 100%;
+     height: 100%;
+     object-fit: cover;
+     z-index: -1; /* VA DIETRO A TUTTO */
+     filter: brightness(0.6); /* Lo scurisco un po' per far leggere bene i titoli */
+ }
+
+ .header {
+     display: flex; justify-content: space-between; align-items: center;
+     padding: 15px; background: rgba(0, 0, 0, 0.4);
+     backdrop-filter: blur(10px);
+     border-bottom: 2px solid #f7fcf6; position: sticky; top: 0; z-index: 100;
+ }
+
+ .grid-giochi {
+     display: grid;
+     grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+     gap: 20px; padding: 25px;
+ }
+
+ .btn-gioco {
+     background: rgba(255, 255, 255, 0.1);
+     border: 2px solid #fdfdfd;
+     border-radius: 20px;
+     overflow: hidden;
+     cursor: pointer;
+     transition: 0.4s;
+     backdrop-filter: blur(4px);
+ }
+
+ .btn-gioco:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 20px #eaebea; }
+ .btn-gioco img { width: 100%; display: block; }
+
+ /* INTRO CON DISSOLVENZA AGGIUNTA */
+ #intro {
+     position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+     background: rgba(0, 0, 0, 0.3); backdrop-filter: blur(5px);
+     display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 5000;
+     transition: opacity 1s ease, visibility 1s ease; /* DISSOLVENZA DI 1 SECONDO */
+ }
+
+ /* Classe per far sparire l'intro con la sfumatura */
+ #intro.hidden {
+     opacity: 0;
+     visibility: hidden;
+ }
+
+ .rombo { width: 100px; height: 100px; border: 4px solid #f2faf1; transform: rotate(45deg); display: flex; justify-content: center; align-items: center; animation: gira 4s infinite linear; }
+ @keyframes gira { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
+  #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 6000; }
+ .close-btn { position: absolute; top: 15px; left: 15px; background: #fff; color: #000; border: none; padding: 10px 20px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+  .page { display: none; }
+ .active { display: block; }
+ .btn-video { background: #e0ebde; color: #000; border: none; padding: 15px; width: 100%; max-width: 300px; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 20px;}
+</style>
+</head>
+<body>
+
+<video id="video-sfondo" autoplay loop muted playsinline poster="https://images.unsplash.com/photo-1630839437035-dac17da580d0?q=80&w=1615&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D">
+   <source src="https://www.playcombo.it/wp-content/uploads/2026/03/4702442-sd_640_360_25fps-1.mp4" type="video/mp4">
+</video>
+
+<div id="intro">
+ <div class="rombo"><span style="transform: rotate(-45deg);color:#fff">HONEST<br>PLAY</span></div>
+ <h1 style="color:#fff; margin-top:40px; text-shadow: 0 0 10px #000;">HONEST PLAY COMBO</h1>
+ <button class="btn-video" onclick="entra()">ENTRA NEL PORTALE</button>
+</div>
+
+<div id="game-view">
+ <button class="close-btn" onclick="chiudiGioco()">X CHIUDI</button>
+ <iframe id="game-iframe" style="width:100%; height:100%; border:none;"></iframe>
+</div>
+
+<div class="header">
+ <div onclick="location.reload()" style="cursor:pointer; font-weight:bold; color:#fff">EXIT</div>
+ <div style="border: 2px solid #fff; padding: 5px 15px; border-radius: 10px; color:#fff">playcombo</div>
+ <div onclick="mostra('info')" style="cursor:pointer; font-weight:bold; color:#fff">INFO</div>
+</div>
+
+<div id="main" class="page active">
+ <div class="grid-giochi">
+     <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/c89fbdcf04fe4fe3a3731b9d9f9d6492/?gd_sdk_referrer_url=https://gamedistribution.com/games/mahjong-dark-dimensions/')"><img src="https://img.gamedistribution.com/c89fbdcf04fe4fe3a3731b9d9f9d6492-512x384.jpg"></div>
+     <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/ba2180413bdf42e2a956b8a9850985f9/?gd_sdk_referrer_url=https://gamedistribution.com/games/lumeno/')"><img src="https://img.gamedistribution.com/ba2180413bdf42e2a956b8a9850985f9-512x384.jpg"></div>
+     <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/ff1245b1ad48487b96a6488b724d6b17/?gd_sdk_referrer_url=https://gamedistribution.com/games/5roll/')"><img src="https://img.gamedistribution.com/ff1245b1ad48487b96a6488b724d6b17-512x384.jpg"></div>
+     <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/1587c23efe0d4c1e8fc69d22429af8fd/?gd_sdk_referrer_url=https://gamedistribution.com/games/mahjongg-alchemy/')"><img src="https://img.gamedistribution.com/1587c23efe0d4c1e8fc69d22429af8fd-512x384.jpg"></div>
+ </div>
+</div>
+
+<div id="info" class="page" style="padding:20px; text-align:center; color:#fff;">
+ <h2>INFO & PRIVACY</h2>
+ <p>Honest Play Combo: Portale Nativo Stagionale</p>
+ <button class="btn-video" onclick="mostra('main')">TORNA AI GIOCHI</button>
+</div>
+
+<script>
+ // NUOVA FUNZIONE PER FAR SFUMARE L'INTRO
+ function entra() {
+     document.getElementById('intro').classList.add('hidden');
+ }
+
+ function apri(url) {
+     document.getElementById('game-iframe').src = url;
+     document.getElementById('game-view').style.display = 'block';
+ }
+ function chiudiGioco() {
+     document.getElementById('game-view').style.display = 'none';
+     document.getElementById('game-iframe').src = '';
+ }
+ function mostra(id) {
+     document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+     document.getElementById(id).classList.add('active');
+ }
+</script>
+
+</body>
+</html>
+-
