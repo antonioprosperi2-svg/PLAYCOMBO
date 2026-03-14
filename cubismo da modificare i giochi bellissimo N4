@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<style>
+  /* 1. LO SFONDO: Qui carichi la tua foto (Mare o Primavera) */
+  body {
+      background-image: url('https://images.unsplash.com/photo-1763198461799-1b9a719f7c3d?q=80&w=1932&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+      background-size: cover;
+      background-position: center;
+      background-attachment: fixed;
+      margin: 0;
+  }
+
+  /* 2. EFFETTO TRASPARENZA: Header che non copre la vista */
+  .header {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 15px; background: rgba(0, 0, 0, 0.4); /* Trasparente */
+      backdrop-filter: blur(10px); /* Sfoca leggermente il mare dietro */
+      border-bottom: 2px solid #f7fcf6; position: sticky; top: 0; z-index: 100;
+  }
+
+  /* 3. LE ICONE: Niente piÃ¹ scatole nere, solo vetro e neon */
+  .grid-giochi {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 20px; padding: 25px;
+  }
+
+  .btn-gioco {
+      background: rgba(255, 255, 255, 0.1);
+      border: 2px solid #fdfdfd;
+      border-radius: 20px;
+      overflow: hidden;
+      cursor: pointer;
+      transition: 0.4s;
+      box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+      backdrop-filter: blur(4px); /* Effetto vetro */
+  }
+
+  .btn-gioco:hover { transform: translateY(-10px) scale(1.05); box-shadow: 0 0 20px #eaebea; }
+  .btn-gioco img { width: 100%; display: block; filter: brightness(0.9); }
+
+  /* Il resto del tuo stile (Intro, Game View ecc.) rimane uguale */
+  #intro {
+   position: fixed;
+   top: 0; left: 0;
+   width: 100%; height: 100%;
+   /* Un velo leggerissimo per far leggere le scritte, ma il mare si vede sotto! */
+   background: rgba(0, 0, 0, 0.2);
+   backdrop-filter: blur(3px); /* Un leggero effetto nebbia che rende tutto elegante */
+   display: flex;
+   flex-direction: column;
+   justify-content: center;
+   align-items: center;
+   z-index: 5000;
+}
+
+  .rombo { width: 100px; height: 100px; border: 4px solid #f2faf1; transform: rotate(45deg); display: flex; justify-content: center; align-items: center; box-shadow: 0 0 20px #f4f6f4; animation: gira 4s infinite linear; }
+  @keyframes gira { from { transform: rotate(45deg); } to { transform: rotate(405deg); } }
+  #game-view { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: hsl(290, 96%, 47%); z-index: 6000; }
+  .close-btn { position: absolute; top: 15px; left: 15px; background: rgba(255, 255, 255, 0.1); color: hsl(290, 96%, 47%); border: none; padding: 10px 20px; font-weight: bold; border-radius: 5px; cursor: pointer; }
+  .page { display: none; }
+  .active { display: block; }
+  .btn-video { background: #e0ebde; color: hsl(290, 96%, 47%); border: none; padding: 15px; width: 100%; max-width: 300px; font-weight: bold; border-radius: 10px; cursor: pointer; margin-top: 20px;}
+</style>
+</head>
+<body>
+
+<div id="intro">
+  <div class="rombo"><span style="transform: rotate(-45deg);color:rgb(235, 236, 239)">HONEST<br>PLAY</span></div>
+  <h1 style="color:#d4d9d3; margin-top:40px; text-shadow: 0 0 10px #eaf3e9;">HONEST PLAY COMBO</h1>
+  <button class="btn-video" onclick="document.getElementById('intro').style.display='none'">ENTRA NEL PORTALE</button>
+</div>
+
+<div id="game-view">
+  <button class="close-btn" onclick="chiudiGioco()">X CHIUDI</button>
+  <iframe id="game-iframe" style="width:100%; height:100%; border:none;"></iframe>
+</div>
+
+<div class="header">
+  <div onclick="location.reload()" style="cursor:pointer; font-weight:bold;color:hsl(290, 96%, 47%)">EXIT</div>
+  <div style="border: 2px solid #e8f9e5; padding: 5px 15px; border-radius: 10px;color:hsl(290, 96%, 47%)">play<span id="punti">combo</span></div>
+  <div onclick="mostra('info')" style="cursor:pointer; font-weight:bold;color:hsl(290, 96%, 47%);">INFO</div>
+</div>
+
+<div id="main" class="page active">
+  <div class="grid-giochi">
+      <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/d2e7b617f09a449db7f7a89e0fdc0a28/?gd_sdk_referrer_url=https://gamedistribution.com/games/the-flowers:-merge-and-sell-bouquets/')"><img src="https://img.gamedistribution.com/d2e7b617f09a449db7f7a89e0fdc0a28-512x384.jpg"></div>
+      <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/51112a32d11447959fc4e69cf624bbda/?gd_sdk_referrer_url=https://gamedistribution.com/games/goods-master-3d/')"><img src="https://img.gamedistribution.com/51112a32d11447959fc4e69cf624bbda-512x384.jpg"></div>
+      <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/0892eba96e364117b73df34b46d98c6d/?gd_sdk_referrer_url=https://gamedistribution.com/games/match-masters-1/')"><img src="https://img.gamedistribution.com/0892eba96e364117b73df34b46d98c6d-512x384.jpg"></div>
+      <div class="btn-gioco" onclick="apri('https://html5.gamedistribution.com/ae42ea5c4e0b4ff4b9eddf47fbd2cc5e/?gd_sdk_referrer_url=https://gamedistribution.com/games/marble-run-ultimate-race!/')"><img src="https://img.gamedistribution.com/ae42ea5c4e0b4ff4b9eddf47fbd2cc5e-512x384.jpg"></div>
+      </div>
+</div>
+<div id="info" class="page" style="padding:20px; text-align:center;">
+  <h2 style="color:rgb(85, 158, 243)">INFO & PRIVACY</h2>
+  <p style="color:hsl(225, 79%, 60%);">Honest Play Combo: Portale Nativo Stagionale:::::Ora ci sara' da divertirsi BOOOOOOOMMMM</p>
+  <button class="btn-video" onclick="mostra('main')">TORNA AI GIOCHI</button>
+</div>
+
+<script>
+  function apri(url) {
+      document.getElementById('game-iframe').src = url;
+      document.getElementById('game-view').style.display = 'block';
+  }
+  function chiudiGioco() {
+      document.getElementById('game-view').style.display = 'none';
+      document.getElementById('game-iframe').src = '';
+  }
+  function mostra(id) {
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+  }
+</script>
+</body>
+</html>
+
