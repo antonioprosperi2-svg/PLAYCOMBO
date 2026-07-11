@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test BeeEngine</title>
+    <style>
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+            padding: 20px;
+            width: 100%;
+        }
+
+        #gameCanvas {
+            background: #87CEEB;
+            touch-action: none;
+            max-width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- AGGIUNTO: Il div che isola il gioco dal resto del sito -->
+    <div class="game-container">
+        <canvas id="gameCanvas"></canvas>
+    </div>
+
+    <script src="BeeEngine.js"></script>
+    <script>
+        // Il resto del codice resta identico, è corretto
+        const gioco = new BeeEngine('gameCanvas', 800, 400);
+
+        const player = {
+            x: 400, y: 200, width: 40, height: 40,
+            speed: 200,
+
+            update(dt, input) {
+                if (input.isPressed('ArrowLeft')) this.x -= this.speed * dt;
+                if (input.isPressed('ArrowRight')) this.x += this.speed * dt;
+                if (input.isPressed('ArrowUp')) this.y -= this.speed * dt;
+                if (input.isPressed('ArrowDown')) this.y += this.speed * dt;
+                // --- FUNZIONE LIMITI (CLAMP) ---
+                // Limiti X (orizzontale)
+                if (this.x < 0) this.x = 0;
+                if (this.x > 800 - this.width) this.x = 800 - this.width;
+
+                // Limiti Y (verticale)
+                if (this.y < 0) this.y = 0;
+                if (this.y > 400 - this.height) this.y = 400 - this.height;
+            },
+
+            draw(ctx) {
+                ctx.fillStyle = 'yellow';
+                ctx.fillRect(this.x, this.y, this.width, this.height);
+            }
+        };
+
+        gioco.addEntity(player);
+
+        gioco.start(
+            (dt, input) => { },
+            (ctx) => {
+                ctx.fillStyle = 'black';
+                ctx.font = '16px sans-serif';
+                ctx.fillText('Usa le frecce (o i pulsanti touch)', 10, 20);
+            }
+        );
+    </script>
+</body>
+
+</html>
