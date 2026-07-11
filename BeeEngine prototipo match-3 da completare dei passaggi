@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+
+<html>
+
+
+
+<head>
+
+    <title>Test BeeEngine</title>
+
+    <style>
+        .game-container {
+
+            display: flex;
+
+            justify-content: center;
+
+            align-items: center;
+
+            background: #222;
+
+            padding: 20px;
+
+            width: 100%;
+
+        }
+
+
+
+        #gameCanvas {
+
+            background: #87CEEB;
+
+            touch-action: none;
+
+            max-width: 100%;
+
+        }
+    </style>
+
+</head>
+
+
+
+<body>
+
+
+
+    <!-- AGGIUNTO: Il div che isola il gioco dal resto del sito -->
+
+    <div class="game-container">
+
+        <canvas id="gameCanvas"></canvas>
+
+    </div>
+
+
+
+    <script src="BeeEngine.js"></script>
+
+    <script>
+
+        // Il resto del codice resta identico, è corretto
+
+        const gioco = new BeeEngine('gameCanvas', 800, 400);
+
+
+
+        // Configurazione griglia MATCH-3
+
+        const grid = {
+
+            cols: 8,
+
+            rows: 8,
+
+            tileSize: 50,
+
+            data: [],
+
+            selectedX: null,
+
+            selectedY: null,
+
+            swapping: false,
+
+            animationProgress: 0,
+
+
+
+            init() {
+
+                for (let y = 0; y < this.rows; y++) {
+
+                    this.data[y] = [];
+
+                    for (let x = 0; x < this.cols; x++) {
+
+                        this.data[y][x] = Math.floor(Math.random() * 4); // 4 colori (0-3)
+
+                    }
+
+                }
+
+            },
+
+
+
+            getTileAt(x, y) {
+
+                if (x < 0 || x >= this.cols || y < 0 || y >= this.rows) return null;
+
+                return this.data[y][x];
+
+            },
+
+
+
+            swap(x1, y1, x2, y2) {
+
+                let temp = this.data[y1][x1];
+
+                this.data[y1][x1] = this.data[y2][x2];
+
+                this.data[y2][x2] = temp;
+
+            },
+
+
+
+            isAdjacent(x1, y1, x2, y2) {
+
+                return Math.abs(x1 - x2) + Math.abs(y1 - y2) === 1;
+
+            },
+
+
+
+            findMatches() {
+
+                let matches = [];
+
+                const colors = ['red', 'blue', 'green', 'yellow'];
+
+
+
+                // Trova match orizzontali
+
+                for (let y = 0; y < this.rows; y++) {
+
+                    for (let x = 0; x < this.cols - 2; x++) {
+
+                        if (this.data[y][x] === this.data[y][x + 1] &&
+
+                            this.data[y][x] === this.data[y][x + 2]) {
+
+                            matches.push([x, y], [x + 1, y], [x + 2, y]);
+
+                        }
+
+                    }
+
+                }
+
+
+
+                // Trova match verticali
+
+                for (let x = 0; x < this.cols; x++) {
+
+                    for (let y = 0; y < this.rows - 2; y++) {
+
+                        if (this.data[y][x] === this.data[y + 1][x] &&
+
+                            this.data[y][x] === this.data[y + 2][x]) {
+
+                            matches.push([x, y], [x, y + 1], [x, y + 2]);
+
+                        }
+
+                    }
+
+                }
+
+
+
+                return matches;
+
+            },
+
+
+
+            removeMatches() {
+
+                let matches = this.findMatches();
+
+                let toRemove = new Set();
+
+
+
+                for (let [x, y] of matches) {
+
+                    toRemove.add(`${x},${y}`);
+
+                }
+
+
+
+                for (let [x, y] of matches) {
+
+                    this.data[y][x] = -1; // -1 = vuoto
+
+                }
+
+
+
+                return toRemove.size > 0;
+
+            },
+
+
+
+            applyGravity() {
+
+                // Fa cadere le tessere verso il basso
+
+                for (let x = 0; x < this.cols; x++) {
+
+                    let writePos = this.rows - 1;
+
+
+
+                    for (let y = this.rows - 1; y >= 0; y--) {
+
+                        if (this.data[y][x] !== -1) {
+
+                            this.data[writePos][x] = this.data[y][x];
+
+                            if (writePos !== y) {
+
+                                this.data[y][x] = -1;
+
+                            }
+
+                            writePos--;
+
+                        }
+
+                    }
+
+                }
+
+
+
+                // Riempie gli spazi vuoti con nuove tessere
+
+                for (let x = 0; x < this.cols; x++) {
+
+                    for (let y = 0; y < this.rows; y++) {
+
+                        if (this.data[y][x] === -1) {
+
+                            this.data[y][x] = Math.floor(Math.random() * 4);
+
+                        }
+
+                    }
+
+                }
+
+            },
+
+
+
+            update() {
+
+                // Applica automaticamente i match e la gravità
+
+                if (this.removeMatches()) {
+
+                    this.applyGravity();
+
+                }
+
+            },
+
+
+
+            handleInput(input) {
+
+                if (!input.mouse.pressed) {
+
+                    this.selectedX = null;
+
+                    this.selectedY = null;
+
+                    return;
+
+                }
+
+
+
+                // Ottieni la posizione del canvas
+
+                const rect = document.getElementById('gameCanvas').getBoundingClientRect();
+
+                const canvasX = input.mouse.x - rect.left;
+
+                const canvasY = input.mouse.y - rect.top;
+
+
+
+                // Converti coordinate pixel in coordinate griglia
+
+                const gridX = Math.floor(canvasX / this.tileSize);
+
+                const gridY = Math.floor(canvasY / this.tileSize);
+
+
+
+                if (gridX < 0 || gridX >= this.cols || gridY < 0 || gridY >= this.rows) {
+
+                    return;
+
+                }
+
+
+
+                // Prima selezione
+
+                if (this.selectedX === null) {
+
+                    this.selectedX = gridX;
+
+                    this.selectedY = gridY;
+
+                } else {
+
+                    // Seconda selezione - prova a scambiare
+
+                    if (this.isAdjacent(this.selectedX, this.selectedY, gridX, gridY)) {
+
+                        this.swap(this.selectedX, this.selectedY, gridX, gridY);
+
+
+
+                        // Controlla se il match è valido
+
+                        let matches = this.findMatches();
+
+                        if (matches.length === 0) {
+
+                            // Nessun match, annulla lo swap
+
+                            this.swap(this.selectedX, this.selectedY, gridX, gridY);
+
+                        }
+
+                    }
+
+
+
+                    this.selectedX = null;
+
+                    this.selectedY = null;
+
+                }
+
+            },
+
+
+
+            draw(ctx) {
+
+                const colors = ['red', 'blue', 'green', 'yellow'];
+
+
+
+                for (let y = 0; y < this.rows; y++) {
+
+                    for (let x = 0; x < this.cols; x++) {
+
+                        const tileType = this.data[y][x];
+
+
+
+                        if (tileType !== -1) {
+
+                            ctx.fillStyle = colors[tileType];
+
+                            ctx.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize - 2, this.tileSize - 2);
+
+
+
+                            // Evidenzia la tessera selezionata
+
+                            if (this.selectedX === x && this.selectedY === y) {
+
+                                ctx.strokeStyle = 'white';
+
+                                ctx.lineWidth = 3;
+
+                                ctx.strokeRect(x * this.tileSize, y * this.tileSize, this.tileSize - 2, this.tileSize - 2);
+
+                            }
+
+                        }
+
+                    }
+
+                }
+
+            }
+
+        };
+
+
+
+        grid.init();
+
+        gioco.addEntity(grid);
+
+        gioco.start(
+
+            (dt, input) => {
+
+                grid.handleInput(input);
+
+                grid.update();
+
+            },
+
+            (ctx) => {
+
+                ctx.fillStyle = 'black';
+
+                ctx.font = '16px sans-serif';
+
+                ctx.fillText('Clicca su due tessere adiacenti per scambiarle', 10, 20);
+
+            }
+
+        );
+
+    </script>
+
+</body>
+
+
+
+</html>
