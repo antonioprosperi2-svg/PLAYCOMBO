@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test BeeEngine</title>
+    <style>
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: #222;
+            padding: 20px;
+            width: 100%;
+        }
+
+        #gameCanvas {
+            background: #02caf700;
+            touch-action: none;
+            max-width: 100%;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+    </div>
+
+    <script src="BeeEngine.js"></script>
+    <script>
+        const gioco = new BeeEngine('gameCanvas', 800, 400);
+
+        // --- GESTIONE AUDIO DEL GIOCO ---
+        // Sostituisci i nomi dei file con i tuoi file audio reali (mp3 o wav)
+        const musicaSottofondo = new Audio('Cyberpunk Moonlight Sonata.mp3');
+        musicaSottofondo.loop = true;
+        musicaSottofondo.volume = 0.4; // Volume al 40%
+
+        const suonoMatch = new Audio('suono_match.mp3');
+        suonoMatch.volume = 0.6;
+
+        // Funzione sicura per avviare la musica al primo clic dell'utente sulla pagina
+        function avviaMusicaSicura() {
+            musicaSottofondo.play().catch(() => { });
+            // Rimuove gli ascoltatori una volta avviata per non appesantire il gioco
+            window.removeEventListener('click', avviaMusicaSicura);
+            window.removeEventListener('keydown', avviaMusicaSicura);
+        }
+        window.addEventListener('click', avviaMusicaSicura);
+        window.addEventListener('keydown', avviaMusicaSicura);
+
+        // Funzione per riprodurre l'effetto sonoro (permette sovrapposizioni se si fanno combo veloci)
+        function riproduciSuonoMatch() {
+            const clone = suonoMatch.cloneNode();
+            clone.play().catch(() => { });
+        }
+        // ---------------------------------
+
+        // Caricamento immagini
+        const tilePink_48 = new Image(); tilePink_48.src = 'tilePink_48.png';
+        const tileOrange_23 = new Image(); tileOrange_23.src = 'tileOrange_23.png';
+        const tileGreen_12 = new Image(); tileGreen_12.src = 'tileGreen_12.png';
+        const tileBlue_12 = new Image(); tileBlue_12.src = 'tileBlue_12.png';
+
+        const grid = {
+            cols: 8, rows: 8, tileSize: 50, data: [], selectedX: null, selectedY: null, wasReleased: true,
+            init() {
+                for (let y = 0; y < this.rows; y++) {
+                    this.data[y] = [];
+                    for (let x = 0; x < this.cols; x++) this.data[y][x] = Math.floor(Math.random() * 4);
+                }
+            },
+            swap(x1, y1, x2, y2) { let temp = this.data[y1][x1]; this.data[y1][x1] = this.data[y2][x2]; this.data[y2][x2] = temp; },
+            isAdjacent(x1, y1, x2, y2) { return Math.abs(x1 - x2) + Math.abs(y1 - y2) === 1; },
+            findMatches() {
+                let matches = [];
+                for (let y = 0; y < this.rows; y++) {
+                    for (let x = 0; x < this.cols - 2; x++) if (this.data[y][x] !== -1 && this.data[y][x] === this.data[y][x + 1] && this.data[y][x] === this.data[y][x + 2]) matches.push([x, y], [x + 1, y], [x + 2, y]);
+                }
+                for (let x = 0; x < this.cols; x++) {
+                    for (let y = 0; y < this.rows - 2; y++) if (this.data[y][x] !== -1 && this.data[y][x] === this.data[y + 1][x] && this.data[y][x] === this.data[y + 2][x]) matches.push([x, y], [x, y + 1], [x, y + 2]);
+                }
+                return matches;
+            },
+            removeMatches() {
+                let matches = this.findMatches();
+                if (matches.length === 0) return false;
+                for (let [x, y] of matches) this.data[y][x] = -1;
+
+                // DISINNESCA IL SUONO: Ogni volta che trova combinazioni, suona!
+                riproduciSuonoMatch();
+
+                return true;
+            },
+            applyGravity() {
+                for (let x = 0; x < this.cols; x++) {
+                    let writePos = this.rows - 1;
+                    for (let y = this.rows - 1; y >= 0; y--) {
+                        if (this.data[y][x] !== -1) { this.data[writePos][x] = this.data[y][x]; if (writePos !== y) this.data[y][x] = -1; writePos--; }
+                    }
+                }
+                for (let x = 0; x < this.cols; x++) {
+                    for (let y = 0; y < this.rows; y++) if (this.data[y][x] === -1) this.data[y][x] = Math.floor(Math.random() * 4);
+                }
+            },
+            update() { if (this.removeMatches()) this.applyGravity(); },
+            handleInput(input) {
+                if (!input.mouse.pressed) { this.wasReleased = true; return; }
+                if (!this.wasReleased) return;
+                this.wasReleased = false;
+                const rect = document.getElementById('gameCanvas').getBoundingClientRect();
+                const gridX = Math.floor((input.mouse.x - rect.left) / this.tileSize);
+                const gridY = Math.floor((input.mouse.y - rect.top) / this.tileSize);
+                if (gridX < 0 || gridX >= this.cols || gridY < 0 || gridY >= this.rows) return;
+                if (this.selectedX === null) { this.selectedX = gridX; this.selectedY = gridY; }
+                else {
+                    if (this.selectedX === gridX && this.selectedY === gridY) { this.selectedX = null; this.selectedY = null; }
+                    else if (this.isAdjacent(this.selectedX, this.selectedY, gridX, gridY)) {
+                        this.swap(this.selectedX, this.selectedY, gridX, gridY);
+                        if (this.findMatches().length === 0) this.swap(this.selectedX, this.selectedY, gridX, gridY);
+                        this.selectedX = null; this.selectedY = null;
+                    } else { this.selectedX = gridX; this.selectedY = gridY; }
+                }
+            },
+            draw(ctx) {
+                const images = [tilePink_48, tileOrange_23, tileGreen_12, tileBlue_12];
+                const colors = ['red', 'blue', 'green', 'yellow'];
+                for (let y = 0; y < this.rows; y++) {
+                    for (let x = 0; x < this.cols; x++) {
+                        const t = this.data[y][x];
+                        if (t !== -1) {
+                            if (images[t].complete) ctx.drawImage(images[t], x * this.tileSize, y * this.tileSize, this.tileSize - 2, this.tileSize - 2);
+                            else { ctx.fillStyle = colors[t]; ctx.fillRect(x * this.tileSize, y * this.tileSize, this.tileSize - 2, this.tileSize - 2); }
+                            if (this.selectedX === x && this.selectedY === y) { ctx.strokeStyle = 'white'; ctx.lineWidth = 3; ctx.strokeRect(x * this.tileSize, y * this.tileSize, this.tileSize - 2, this.tileSize - 2); }
+                        }
+                    }
+                }
+            }
+        };
+
+        grid.init();
+        gioco.addEntity(grid);
+        gioco.start((dt, input) => { grid.handleInput(input); grid.update(); }, (ctx) => { ctx.fillStyle = 'black'; ctx.fillText('Match-3 Test', 10, 20); });
+    </script>
+</body>
+
+</html>
