@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="it">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Griglia BeeEngine</title>
+    <style>
+        body,
+        html {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background: #111;
+        }
+
+        canvas {
+            display: block;
+            margin: 20px auto;
+            background: #8edeab;
+            border: 4px solid #ffd700;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Il rettangolo di gioco -->
+    <canvas id="testCanvas"></canvas>
+
+    <script type="module">
+        // 1. IMPORTA TUTTO quello che ti serve in cima
+        import { BeeEngine } from './BeeEngine.js';
+        import { BeeGrid } from './src/BeeGrid.js';
+        import { BeePlayer } from './src/BeePlayer.js'; // AGGIUNGI QUESTO!
+
+        // 2. CREA IL MOTORE PER PRIMO
+        const game = new BeeEngine('testCanvas', 800, 600);
+        game.loadAsset("image", "ape", "assets/bee_a.png")
+            .then(() => {
+                console.log("✅ L'ape è nel database!");
+            })
+            .catch((err) => {
+                console.error("❌ Errore:", err);
+            });
+
+        // 3. ORA CHE IL MOTORE ESISTE, AGGIUNGI IL PLAYER
+        const player = new BeePlayer(100, 100);
+        const immagineApe = new Image();
+        // Usiamo il percorso che abbiamo appena scoperto funzionare al 100%
+        immagineApe.src = "assets/bee_a.png";
+        // Assicurati che BeeEngine abbia una lista chiamata 'entities'
+        game.entities = [];
+        game.entities.push(player);
+
+        // ... (tutto il resto del codice della griglia rimane uguale)
+
+        // 3. Creiamo una scacchiera usando la TUA classe BeeGrid
+        // Colonne: 20, Righe: 15, Dimensione cella: 40 pixel
+        const griglia = new BeeGrid(20, 15, 40);
+
+        // Riempiamo la griglia con qualche numero di prova per fare i blocchi
+        for (let r = 0; r < griglia.rows; r++) {
+            for (let c = 0; c < griglia.cols; c++) {
+                // Creiamo un bordo di mattoni (valore 1) e il vuoto dentro (valore 0)
+                if (r === 0 || r === griglia.rows - 1 || c === 0 || c === griglia.cols - 1) {
+                    griglia.setCell(c, r, 1); // Muro
+                } else {
+                    griglia.setCell(c, r, 0); // Vuoto
+                }
+            }
+        }
+
+        // Aggiungiamo un ostacolo casuale in mezzo per bellezza
+        griglia.setCell(5, 5, 1);
+        griglia.setCell(6, 5, 1);
+        griglia.setCell(7, 5, 1);
+
+
+        // 4. Facciamo partire il ciclo di disegno continuo
+        game.start(
+            // Funzione di Update (Logica)
+            (dt, input) => {
+                // Per ora non dobbiamo muovere nulla
+            },
+            // Funzione di Render (Disegno)
+            (ctx) => {
+                // Usiamo la TUA funzione draw di BeeGrid per disegnare i quadratini!
+                griglia.draw(ctx, (context, x, y, valore) => {
+                    if (valore === 1) {
+                        // Se la cella vale 1, disegna un mattone giallo oro
+                        context.fillStyle = "#FFD700";
+                        context.fillRect(x, y, griglia.cellSize - 2, griglia.cellSize - 2);
+                    } else {
+                        // Se vale 0, disegna uno sfondo scuro trasparente
+                        context.fillStyle = "#222222";
+                        context.fillRect(x, y, griglia.cellSize - 2, griglia.cellSize - 2);
+
+                    }
+                });
+
+                // Disegna il player
+                // Diciamo al pennello (ctx) di incollare la figura dell'ape sulle coordinate del player
+                ctx.drawImage(immagineApe, player.x, player.y, 40, 40);
+
+                // Scriviamo un testo sopra per confermare che funziona
+                ctx.fillStyle = "#ffffff";
+                ctx.font = "20px Arial";
+                ctx.textAlign = "center";
+                ctx.fillText("🐝 BEEENGINE: TEST GRIGLIA NATIVA FUNZIONANTE!", game.canvas.width / 2, 40);
+            }
+        );
+
+        console.log("🚀 Test della griglia avviato!");
+    </script>
+    <script type="module" src="main.js"></script>
+</body>
+
+
+</html>
