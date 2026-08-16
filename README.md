@@ -2,7 +2,10 @@
   <img src="https://github.com/user-attachments/assets/ec1709c8-401d-4c41-a44c-cf58bcbfeef3" alt="BeeEngine Logo" width="100%" style="max-width: 700px; border-radius: 10px;" />
 </p>
 
-
+<nav>
+  <a href="giochi.html">Vai alla lista giochi</a>
+  <a href="Monster-Munch-Premium-Arcade-BeeEngine-/index.html">Gioca a Monster Munch</a>
+</nav>
 "Sviluppo strutture HTML per piattaforme giochi personalizzate"
 Sto realizzando una libreria in VANILLA JS pura ES6 
 # 🐝 BeeEngine 2D Game Engine (v2.0 Professional)
