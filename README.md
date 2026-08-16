@@ -3,8 +3,8 @@
 </p>
 
 <nav>
-  <a href="giochi.html">Vai alla lista giochi</a>
-  <a href="Monster-Munch-Premium-Arcade-BeeEngine-/index.html">Gioca a Monster Munch</a>
+  <a href="https://www.playcombo.it">Vai alla lista giochi</a>
+  <a href="https://antonioprosperi2-svg.github.io/Monster-Munch-Premium-Arcade-BeeEngine-/">Gioca a Monster Munch</a>
 </nav>
 "Sviluppo strutture HTML per piattaforme giochi personalizzate"
 Sto realizzando una libreria in VANILLA JS pura ES6 
