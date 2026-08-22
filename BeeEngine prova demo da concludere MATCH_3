@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test BeeEngine</title>
+    <style>
+        .game-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            /* Sposta qui lo sfondo */
+            background-image: url('https://www.playcombo.it/wp-content/uploads/2026/07/Game-Background-Countryside-Free-Unity-Assets.jpg');
+            background-size: cover;
+            background-position: center;
+            /* Questo lo centra perfettamente */
+            padding: 20px;
+            width: 100%;
+        }
+
+        #gameCanvas {
+            background: transparent;
+            /* Tolto il colore, ora è invisibile */
+            touch-action: none;
+            max-width: 100%;
+        }
+    </style>
+</head>
+<h2 id="punti">Punti: 0</h2>
+
+
+<body>
+    <div class="game-container">
+        <canvas id="gameCanvas" width="800" height="400"></canvas>
+
+    </div>
+
+    <script src="BeeEngine.js"></script>
+    <script>
+        let punteggio = 0;
+        const gioco = new BeeEngine('gameCanvas', 800, 400);
+
+        // --- GESTIONE AUDIO DEL GIOCO ---
+        // Sostituisci i nomi dei file con i tuoi file audio reali (mp3 o wav)
+        const musicaSottofondo = new Audio('bgm_action_4.mp3');
+        musicaSottofondo.loop = true;
+        musicaSottofondo.volume = 0.4; // Volume al 40%
+
+        const suonoMatch = new Audio('completetask_0.mp3');
+        suonoMatch.volume = 0.8;
+
+        // Funzione sicura per avviare la musica al primo clic dell'utente sulla pagina
+        function avviaMusicaSicura() {
+            musicaSottofondo.play().catch(() => { });
+            // Rimuove gli ascoltatori una volta avviata per non appesantire il gioco
+            window.removeEventListener('click', avviaMusicaSicura);
+            window.removeEventListener('keydown', avviaMusicaSicura);
+        }
+        window.addEventListener('click', avviaMusicaSicura);
+        window.addEventListener('keydown', avviaMusicaSicura);
+
+        // Funzione per riprodurre l'effetto sonoro (permette sovrapposizioni se si fanno combo veloci)
+        function riproduciSuonoMatch() {
+            const clone = suonoMatch.cloneNode();
+            clone.play().catch(() => { });
+        }
+        // ---------------------------------
+
+        // Caricamento immagini
+        const tilePink_48 = new Image(); tilePink_48.src = 'tilePink_48.png';
+        const tileOrange_23 = new Image(); tileOrange_23.src = 'tileOrange_23.png';
+        const tileGreen_12 = new Image(); tileGreen_12.src = 'tileGreen_12.png';
+        const tileBlue_12 = new Image(); tileBlue_12.src = 'tileBlue_12.png';
+        const tileHeart = new Image(); tileHeart.src = 'tileHeart.png';
+
+        const grid = {
+            cols: 8, rows: 8, tileSize: 50, data: [], visualData: [],
+            selectedX: null, selectedY: null, wasReleased: true,
+            heartPulseTime: 0,
+            velAnimazione: 5, // Più è alto questo numero, più le tessere cadono veloci (es. 5 = lente, 15 = veloci)
+
+            getNewTile() {
+                return (Math.random() < 0.05) ? 4 : Math.floor(Math.random() * 4);
+            },
+
+            init() {
+                for (let y = 0; y < this.rows; y++) {
+                    this.data[y] = [];
+                    this.visualData[y] = [];
+                    for (let x = 0; x < this.cols; x++) {
+                        this.data[y][x] = this.getNewTile();
+                        // Le tessere nascono visivamente sopra lo schermo e cadono giù piano piano
+                        this.visualData[y][x] = { x: x * this.tileSize, y: -100 };
+                    }
+                }
+            },
+
+            setCell(x, y, value) {
+                if (y >= 0 && y < this.rows && x >= 0 && x < this.cols) {
+                    this.data[y][x] = value;
+                }
+            },
+
+            swap(x1, y1, x2, y2) {
+                let temp = this.data[y1][x1];
+                this.data[y1][x1] = this.data[y2][x2];
+                this.data[y2][x2] = temp;
+            },
+
+            isAdjacent(x1, y1, x2, y2) { return Math.abs(x1 - x2) + Math.abs(y1 - y2) === 1; },
+
+            findMatches() {
+                let set = new Set();
+                for (let y = 0; y < this.rows; y++) {
+                    for (let x = 0; x < this.cols - 2; x++) {
+                        if (this.data[y][x] !== -1 && this.data[y][x] === this.data[y][x + 1] && this.data[y][x] === this.data[y][x + 2]) {
+                            set.add(`${x},${y}`);
+                            set.add(`${x + 1},${y}`);
+                            set.add(`${x + 2},${y}`);
+                        }
+                    }
+                }
+                for (let x = 0; x < this.cols; x++) {
+                    for (let y = 0; y < this.rows - 2; y++) {
+                        if (this.data[y][x] !== -1 && this.data[y][x] === this.data[y + 1][x] && this.data[y][x] === this.data[y + 2][x]) {
+                            set.add(`${x},${y}`);
+                            set.add(`${x},${y + 1}`);
+                            set.add(`${x},${y + 2}`);
+                        }
+                    }
+                }
+                return Array.from(set).map(item => item.split(',').map(Number));
+            },
+
+            removeMatches() {
+
+                let matches = this.findMatches();
+                if (matches.length === 0) return false;
+
+                let uniqueMatches = new Set(matches.map(([x, y]) => `${x},${y}`));
+                let heartExploded = false;
+                let heartPosition = null;
+
+                for (let [x, y] of matches) {
+                    if (this.data[y][x] === 4) {
+                        heartExploded = true;
+                        heartPosition = { x, y };
+                        for (let col = 0; col < this.cols; col++) {
+                            uniqueMatches.add(`${col},${y}`);
+                        }
+                        for (let row = 0; row < this.rows; row++) {
+                            uniqueMatches.add(`${x},${row}`);
+                        }
+                    }
+                }
+
+                punteggio += uniqueMatches.size * 10;
+                document.getElementById('punti').innerText = "Punti: " + punteggio;
+
+                if (heartExploded) {
+                    gioco.emit('esplosione:cuore', heartPosition);
+                }
+
+                for (let entry of uniqueMatches) {
+                    let [x, y] = entry.split(',').map(Number);
+                    this.data[y][x] = -1;
+                }
+
+                riproduciSuonoMatch();
+                return true;
+            },
+
+
+            applyGravity() {
+                for (let x = 0; x < this.cols; x++) {
+                    let writePos = this.rows - 1;
+                    for (let y = this.rows - 1; y >= 0; y--) {
+                        if (this.data[y][x] !== -1) {
+                            this.data[writePos][x] = this.data[y][x];
+                            if (writePos !== y) this.data[y][x] = -1;
+                            writePos--;
+                        }
+                    }
+                }
+                for (let x = 0; x < this.cols; x++) {
+                    for (let y = 0; y < this.rows; y++) {
+                        if (this.data[y][x] === -1) {
+                            this.data[y][x] = this.getNewTile();
+                            // Quando una nuova tessera riappare in cima, la facciamo partire da sopra il canvas
+                            this.visualData[y][x].y = -50 - (y * 20);
+                            this.visualData[y][x].x = x * this.tileSize;
+                        }
+                    }
+                }
+            },
+
+            // QUI AGGIORNIAMO IL MOVIMENTO FLUIDO DELLE TESSERE COMPRESO IL DT
+            update(dt) {
+                // 0. Aggiorna il timer per l’effetto pulsante del cuore bonus
+                this.heartPulseTime += dt || 0.016;
+
+                // 1. Controlla lo stato delle animazioni (se le tessere si stanno ancora muovendo)
+                let tessereInMovimento = false;
+                let attualeDT = (dt && dt > 0) ? dt : 0.016;
+
+                for (let y = 0; y < this.rows; y++) {
+                    for (let x = 0; x < this.cols; x++) {
+                        let targetX = x * this.tileSize;
+                        let targetY = y * this.tileSize;
+                        let v = this.visualData[y][x];
+
+                        // Muove la tessera verso il target
+                        v.x += (targetX - v.x) * this.velAnimazione * attualeDT;
+                        v.y += (targetY - v.y) * this.velAnimazione * attualeDT;
+
+                        // Se la tessera dista più di 1 pixel dal suo target, consideriamo che si sta ancora muovendo
+                        if (Math.abs(v.x - targetX) > 1 || Math.abs(v.y - targetY) > 1) {
+                            tessereInMovimento = true;
+                        }
+                    }
+                }
+
+                // 2. IL MOTORE DELLE COMBO: Se TUTTE le tessere hanno finito di muoversi ed hanno toccato terra
+                if (!tessereInMovimento) {
+                    // Controlla se ci sono nuovi match. Se sì, li rimuove e applica la gravità per far scendere i nuovi blocchi!
+                    if (this.removeMatches()) {
+                        this.applyGravity();
+                    }
+                }
+            },
+
+
+
+            // BLOCCHIAMO I CLIC FINCHÉ LE TESSERE NON HANNO FINITO DI CADERE
+            isAnimating() {
+                for (let y = 0; y < this.rows; y++) {
+                    for (let x = 0; x < this.cols; x++) {
+                        let targetX = x * this.tileSize;
+                        let targetY = y * this.tileSize;
+                        let v = this.visualData[y][x];
+                        if (Math.abs(v.x - targetX) > 1 || Math.abs(v.y - targetY) > 1) return true;
+                    }
+                }
+                return false;
+            },
+
+            handleInput(input) {
+                if (this.isAnimating()) return;
+                if (!input.mouse.pressed) { this.wasReleased = true; return; }
+                if (!this.wasReleased) return;
+                this.wasReleased = false;
+
+                const rect = document.getElementById('gameCanvas').getBoundingClientRect();
+
+                // --- IL TRUCCO È QUI: Sottrai il margine nel calcolo della gridX ---
+                const margineSinistro = 250; // Deve essere lo stesso numero che hai messo nel draw!
+                const gridX = Math.floor((input.mouse.x - rect.left - margineSinistro) / this.tileSize);
+                const gridY = Math.floor((input.mouse.y - rect.top) / this.tileSize);
+                // --------------------------------------------------------------------
+
+                if (gridX < 0 || gridX >= this.cols || gridY < 0 || gridY >= this.rows) return;
+
+                // ... il resto del codice rimane uguale ...
+                if (this.selectedX === null) { this.selectedX = gridX; this.selectedY = gridY; }
+                else {
+
+
+
+                    if (this.selectedX === gridX && this.selectedY === gridY) { this.selectedX = null; this.selectedY = null; }
+                    else if (this.isAdjacent(this.selectedX, this.selectedY, gridX, gridY)) {
+                        this.swap(this.selectedX, this.selectedY, gridX, gridY);
+                        if (this.findMatches().length === 0) this.swap(this.selectedX, this.selectedY, gridX, gridY);
+                        this.selectedX = null; this.selectedY = null;
+                    } else { this.selectedX = gridX; this.selectedY = gridY; }
+                }
+            },
+
+            draw(ctx) {
+                const images = [tilePink_48, tileOrange_23, tileGreen_12, tileBlue_12, tileHeart];
+                const colors = ['red', 'blue', 'green', 'yellow', 'magenta'];
+
+                // 1. Definisci il margine qui (gioca con questo numero per centrare bene)
+                const margineSinistro = 250;
+
+                for (let y = 0; y < this.rows; y++) {
+                    for (let x = 0; x < this.cols; x++) {
+                        const t = this.data[y][x];
+                        if (t !== -1) {
+                            const v = this.visualData[y][x];
+                            const drawX = v.x + margineSinistro;
+                            const drawY = v.y;
+
+                            const img = images[t];
+                            const hasValidImage = img && img.complete && img.naturalWidth > 0;
+                            if (hasValidImage) {
+                                ctx.drawImage(img, drawX, drawY, this.tileSize - 2, this.tileSize - 2);
+                            } else {
+                                ctx.fillStyle = colors[t] || 'magenta';
+                                if (t === 4) {
+                                    const cx = drawX + this.tileSize * 0.5;
+                                    const cy = drawY + this.tileSize * 0.5;
+                                    const s = this.tileSize * 0.22;
+                                    ctx.beginPath();
+                                    ctx.moveTo(cx, cy + s);
+                                    ctx.bezierCurveTo(cx + s, cy + s, cx + s, cy - s * 0.2, cx, cy - s);
+                                    ctx.bezierCurveTo(cx - s, cy - s * 0.2, cx - s, cy + s, cx, cy + s);
+                                    ctx.fill();
+
+                                    const pulse = 1 + Math.sin(this.heartPulseTime * 5) * 0.18;
+                                    const borderSize = 4 * pulse;
+                                    ctx.strokeStyle = `rgba(255,255,255,${0.8 + Math.sin(this.heartPulseTime * 5) * 0.2})`;
+                                    ctx.lineWidth = borderSize;
+                                    ctx.strokeRect(drawX + 2, drawY + 2, this.tileSize - 6, this.tileSize - 6);
+                                } else {
+                                    ctx.fillRect(drawX, drawY, this.tileSize - 2, this.tileSize - 2);
+                                }
+                            }
+
+                            if (this.selectedX === x && this.selectedY === y) {
+                                ctx.strokeStyle = 'white';
+                                ctx.lineWidth = 3;
+                                ctx.strokeRect(drawX, drawY, this.tileSize - 2, this.tileSize - 2);
+                            }
+                        }
+                    }
+                }
+            }
+        };
+        grid.init();
+        gioco.addEntity(grid);
+
+        // 1. Assicurati di avere il riferimento alla griglia
+        // 2. Registra l'ascoltatore PRIMA del loop di gioco
+        gioco.on('esplosione:cuore', (posizione) => {
+            console.log("BOOM! Il cuore è scoppiato alla riga " + posizione.y);
+
+            // L'esplosione viene già gestita dentro removeMatches().
+            // Qui possiamo solo eseguire effetti visivi o audio aggiuntivi,
+            // senza modificare di nuovo la griglia.
+
+            // NON chiamare applyGravity() qui! Questo evento parte SINCRONO,
+            // a metà del ciclo for dentro removeMatches() che sta ancora
+            // cancellando le altre tessere del match. Se la gravità gira ora,
+            // il tabellone si sposta mentre quel ciclo sta ancora usando le
+            // coordinate vecchie, e cancella le celle sbagliate.
+            // La gravità gira già una volta sola, al momento giusto, dentro
+            // update() subito dopo che removeMatches() ha finito TUTTO
+            // (comprese le distruzioni del cuore). Basta lasciarla fare a lei.
+        });
+
+        // 2. AVVIO DEL GIOCO ORIGINALISSIMO (Resta l'ultimo passaggio in fondo)
+        gioco.start((dt, input) => {
+            grid.handleInput(input);
+            grid.update(dt);
+        }, (ctx) => {
+            ctx.fillStyle = 'black';
+            ctx.fillText('Match-3 Test', 10, 20);
+        });
+    </script>
+</body>
+
+</html>
