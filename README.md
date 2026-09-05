@@ -1,6 +1,4 @@
-<p align="center">
-  <img src="https://github.com/user-attachments/assets/ec1709c8-401d-4c41-a44c-cf58bcbfeef3" alt="BeeEngine Logo" width="100%" style="max-width: 700px; border-radius: 10px;" />
-</p>
+<img width="1024" height="1024" alt="Gemini_Generated_Image_yn98k2yn98k2yn98" src="https://github.com/user-attachments/assets/3f336b07-e398-4a0e-8c55-073fcd37fc99" />
 
 
 "Sviluppo strutture HTML per piattaforme giochi personalizzate"
