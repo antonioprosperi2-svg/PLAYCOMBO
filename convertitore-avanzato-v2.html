@@ -231,18 +231,19 @@
         <h3>2. Risultato della Conversione</h3>
         <p id="tipoFeedRilevato" class="info-feed"></p>
         <p id="infoConteggioTotale" class="success"></p>
-        
+
         <!-- SEZIONE PROBLEMI -->
         <div id="sezioneProblem" style="display:none;">
             <div class="problem-section">
                 <div class="problem-titolo">🔍 Problemi Rilevati</div>
                 <div id="problemList"></div>
                 <div class="select-all-container">
-                    <input type="checkbox" id="selectAllProblems" onchange="toggleAllProblems()"> 
+                    <input type="checkbox" id="selectAllProblems" onchange="toggleAllProblems()">
                     <label for="selectAllProblems"><strong>Seleziona tutti i problematici</strong></label>
                 </div>
                 <button class="remove-selected-btn" onclick="rimuoviSelezionati()">Rimuovi Selezionati</button>
-                <button class="btn-verifica" style="margin-left: 10px;" onclick="testaPrimiUrl()">Test URL (Primi 5)</button>
+                <button class="btn-verifica" style="margin-left: 10px;" onclick="testaPrimiUrl()">Test URL (Primi
+                    5)</button>
             </div>
         </div>
 
@@ -444,13 +445,13 @@
         function mostraProblemi(problemi) {
             const sezioneProblem = document.getElementById('sezioneProblem');
             const problemList = document.getElementById('problemList');
-            
+
             problemList.innerHTML = '<p class="warning">⚠️ Trovati ' + problemi.length + ' giochi con problemi:</p>';
 
             problemi.forEach(problema => {
                 const divGioco = document.createElement('div');
                 divGioco.className = 'game-item';
-                
+
                 const badges = problema.problemi.map(p => {
                     let badgeClass = 'badge-broken';
                     if (p.includes('DUPLICATO')) badgeClass = 'badge-duplicate';
@@ -497,7 +498,7 @@
                 problematiSelezionati = [];
                 alert('Rimozione completata! Ora converti di nuovo per vedere il risultato.');
                 document.getElementById('selectAllProblems').checked = false;
-                
+
                 // Ricrea la visualizzazione
                 convertiEDividiFeedUniversale();
             }
