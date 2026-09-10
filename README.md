@@ -1,35 +1,3 @@
-    ├── BeeBullet.js            # Gestione dei proiettili 2D attivi
-    ├── BeeButton.js            # Pulsanti interattivi per menu su Canvas
-    ├── BeeCamera.js            # Telecamera 2D con supporto al bounding box visivo
-    ├── BeeCollectible.js       # Oggetti raccoglibili (monete, miele)
-    ├── BeeEntity.js            # Classe base per tutte le entità di gioco
-    ├── BeeEnemyShooter.js      # Nemico avanzato a 4 direzioni con sparo automatico
-    ├── BeeGrid.js              # Griglia di sfondo / debug spaziale
-    ├── BeeInput.js             # Gestione input (tastiera, mouse, comandi)
-    ├── BeeMenuScene.js         # Scena nativa del menu principale
-    ├── BeeNemico.js            # Nemico base con movimento a pattuglia
-    ├── BeeParticleSystem.js    # Sistema di particelle per effetti grafici
-    ├── BeePlayer.js            # Personaggio giocabile (Modalità: 'platformer' o 'free')
-    ├── BeeRectCollider.js      # Collisore geometrico rettangolare AABB
-    ├── BeeSave.js              # Salvataggio dati persistenti in LocalStorage
-    ├── BeeSceneManager.js      # Gestore dei cicli di vita e transizioni delle scene
-    ├── BeeSprite.js            # Renderizzatore di fogli di sprite e texture
-    ├── BeeText.js              # Disegno di testi e rendering della barra HUD nativa
-    ├── BeeTilemap.js           # Mappe a blocchi ottimizzate con culling riga/colonna
-    ├── BeeTimer.js             # Gestore eventi basati sul tempo (Cooldown)
-    └── BeeTouchControls.js     # Interfaccia comandi touch mobili nativa
-```
-
----
-
-## 🚀 Novità e Ottimizzazioni Professionali in v2.0
-
-### 1. Sistema di Collisioni Centralizzato (`BeeCollisionSystem`)
-Rimosso il controllo manuale e iterativo delle collisioni nel ciclo di gioco. Il nuovo modulo permette di registrare le entità in gruppi logici ed eseguire passate di risoluzione fisiche o logiche ultra-efficienti:
-* **Fisica Solida (`solid`)**: Gestione automatica della gravità e atterraggio solido dei corpi mobili sulle piattaforme.
-* **Incroci di Eventi (`overlap`)**: Gestione dei trigger (es. raccolta monete, danno dai nemici) tramite funzioni di callback asincrone.
-
-### 2. Risparmio CPU tramite Frustum Culling (`BeeCamera`)
 Implementato un algoritmo di sfoltimento grafico (*Culling*) legato ai confini visivi di `BeeCamera`. 
 * Prima di inviare i dati di disegno al Canvas, il motore verifica se l'entità o la porzione di mappa si trova dentro lo schermo.
 * Se l'oggetto è fuori dalla visuale, il comando di rendering viene saltato. Questo **abbatte drasticamente l'uso della CPU**, mantenendo i 60 FPS stabili anche su mappe di grandi dimensioni.
