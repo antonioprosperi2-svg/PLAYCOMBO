@@ -1,33 +1,3 @@
-<img width="1024" height="1024" alt="Gemini_Generated_Image_yn98k2yn98k2yn98" src="https://github.com/user-attachments/assets/3f336b07-e398-4a0e-8c55-073fcd37fc99" />
-
-
-"Sviluppo strutture HTML per piattaforme giochi personalizzate"
-Sto realizzando una libreria in VANILLA JS pura ES6 
-# 🐝 BeeEngine 2D Game Engine (v2.0 Professional)
-
-**BeeEngine** è un motore di gioco 2D leggero, modulare e altamente ottimizzato scritto in puro JavaScript moderno (ES Modules) per HTML5 Canvas. 
-
-La versione 2.0 introduce un'architettura professionale pronta per la distribuzione tramite NPM, ottimizzazioni avanzate per il risparmio della CPU e un sistema di collisioni centralizzato.
-
----
-
-## 📁 Struttura del Progetto Aggiornata
-
-```text
-BeeEngine V1.0/
-├── index.html                  # Punto di ingresso HTML e configurazione Canvas
-├── main.js                     # Demo, gestione scene e punto d'avvio del gioco
-├── BeeEngine.js                # Il CUORE del motore (Core Loop & System Coordinator)
-├── README.md                   # Documentazione ufficiale e specifiche tecniche
-├── package.json                # Manifest di configurazione per la pubblicazione NPM
-├── tsconfig.json               # Configurazione TypeScript per i controlli dell'IDE
-├── index.d.ts                  # Definizioni di tipo globali (Oltre 600 righe di IntelliSense)
-├── assets/                     # Gestione centralizzata e ordinata delle risorse
-│   ├── audio/                  # Effetti sonori (.mp3) e musiche di sottofondo
-│   └── images/                 # Texture dei personaggi (.png), sprite e sfondi
-└── src/                        # Tutti i moduli logici del motore
-    ├── BeeCollisionSystem.js   # NUOVO: Gestore centralizzato e ottimizzato delle collisioni
-    ├── BeeAssetManager.js      # Caricamento asincrono e cache di immagini/audio
     ├── BeeBullet.js            # Gestione dei proiettili 2D attivi
     ├── BeeButton.js            # Pulsanti interattivi per menu su Canvas
     ├── BeeCamera.js            # Telecamera 2D con supporto al bounding box visivo
